@@ -1,5 +1,5 @@
 /**
- * Copyright 2020 Google Inc.
+ * Copyright 2023 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,94 +15,41 @@
  */
 
 buildscript {
+    ext.kotlin_version = '1.9.23'
     repositories {
         google()
-        jcenter()
+        mavenCentral()
+        maven {
+            url 'https://plugins.gradle.org/m2/'
+        }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.6.2'
-        classpath 'com.dicedmelon.gradle:jacoco-android:0.1.4'
+        classpath 'com.android.tools.build:gradle:8.4.0'
+        classpath 'com.mxalbert.gradle:jacoco-android:0.2.1'
+        classpath "com.google.android.libraries.mapsplatform.secrets-gradle-plugin:secrets-gradle-plugin:2.0.1"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "org.jetbrains.dokka:dokka-gradle-plugin:1.9.20"
     }
 }
+
 
 allprojects {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
         flatDir {
             dirs 'libs'
         }
     }
 }
 
-task clean(type: Delete) {
+tasks.register('clean', Delete) {
     delete rootProject.buildDir
-}
-
-/**
- * Improve build server performance by allowing disabling of pre-dexing
- * (see http://tools.android.com/tech-docs/new-build-system/tips#TOC-Improving-Build-Server-performance.)
- */
-project.ext.preDexLibs = !project.hasProperty('disablePreDex')
-
-subprojects {
-    project.plugins.whenPluginAdded { plugin ->
-        if (rootProject.ext.has('preDexLibs')) {
-            if ("com.android.build.gradle.AppPlugin" == plugin.class.name) {
-                project.android.dexOptions.preDexLibraries = rootProject.ext.preDexLibs
-            } else if ("com.android.build.gradle.LibraryPlugin" == plugin.class.name) {
-                project.android.dexOptions.preDexLibraries = rootProject.ext.preDexLibs
-            }
-        }
-    }
-}
-
-/**
- * This task will copy all of the source code in the `library` module into the `library-v3` module
- * and change its imports from the Maps SDK on Play Services to the Standalone V3 Beta Maps SDK.
- */
-task copyGmsToV3Beta(type: Copy) {
-    group 'Custom'
-    description 'Generates source code for Maps SDK for Android V3 BETA Utilities'
-    into 'library-v3/src'
-
-    from('library/src/main/java') {
-        filter { line ->
-            line.replace('com.google.android.gms.maps', 'com.google.android.libraries.maps')
-        }
-        into 'main/java'
-    }
-
-    from('library/src/main/res') {
-        into 'main/res'
-        exclude '**/*.xml'
-    }
-
-    from('library/src/main/res') {
-        into 'main/res'
-        include '**/*.xml'
-
-        // Although the files within library/src/main/res do not reference classes under the gms
-        // package name, package name replacement is still applied to resources to future-proof
-        // this should it change.
-        filter { line ->
-            line.replace('com.google.android.gms.maps', 'com.google.android.libraries.maps')
-        }
-    }
-
-    from('library/src/test') {
-        filter { line ->
-            line.replace('com.google.android.gms.maps', 'com.google.android.libraries.maps')
-        }
-        into 'test'
-    }
 }
 
 ext.projectArtifactId = { project ->
     if (project.name == 'library') {
         return 'android-maps-utils'
-    } else if (project.name == 'library-v3') {
-        return 'android-maps-utils-v3'
     } else {
         return null
     }
@@ -110,7 +57,7 @@ ext.projectArtifactId = { project ->
 
 allprojects {
     group = 'com.google.maps.android'
-    version = '2.0.3'
+    version = '3.8.2'
     project.ext.artifactId = rootProject.ext.projectArtifactId(project)
 }
 
@@ -121,33 +68,47 @@ subprojects { project ->
     if (project.ext.artifactId == null) return
 
     apply plugin: 'com.android.library'
-    apply plugin: 'jacoco-android'
+    apply plugin: 'com.mxalbert.gradle.jacoco-android'
     apply plugin: 'maven-publish'
     apply plugin: 'signing'
 
     // Code coverage
     jacoco {
-        toolVersion = "0.8.5"
+        toolVersion = "0.8.4"
     }
 
-    tasks.withType(Test) {
+    tasks.withType(Test).configureEach {
         jacoco.includeNoLocationClasses = true
         jacoco.excludes = ['jdk.internal.*']
     }
 
-    task javadoc(type: Javadoc) {
-        failOnError false
+    tasks.register('javadoc', Javadoc) {
+        options.memberLevel = JavadocMemberLevel.PUBLIC
+        options.encoding = "utf-8"
+        failOnError = false
+        exclude '**/BuildConfig.java'
+        exclude '**/R.java'
         source = android.sourceSets.main.java.srcDirs
+        doFirst {
+            classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+        }
+        android.libraryVariants.all { variant ->
+            if (variant.name == 'release') {
+                owner.classpath += variant.javaCompileProvider.get().classpath
+            }
+        }
+        options.addStringOption('-ignore-source-errors', '-quiet')
     }
 
-    task sourcesJar(type: Jar) {
+    tasks.register('sourcesJar', Jar) {
         from android.sourceSets.main.java.srcDirs
-        classifier = 'sources'
+        archiveClassifier  = 'sources'
     }
 
-    task javadocJar(type: Jar, dependsOn: javadoc) {
-        classifier = 'javadoc'
-        from javadoc.destinationDir
+    tasks.register('javadocJar', Jar) {
+        dependsOn dokkaHtml
+        archiveClassifier  = 'javadoc'
+        from dokkaHtml.outputDirectory
     }
 
     publishing {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Google Inc.
+ * Copyright 2023 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import com.google.maps.android.clustering.ClusterItem;
 import com.google.maps.android.clustering.ClusterManager;
 
 import java.util.Set;
+
+import androidx.annotation.StyleRes;
 
 /**
  * Renders clusters.
@@ -52,6 +54,11 @@ public interface ClusterRenderer<T extends ClusterItem> {
     void setAnimation(boolean animate);
 
     /**
+     * Sets the length of the animation in milliseconds.
+     */
+    void setAnimationDuration(long animationDurationMs);
+
+    /**
      * Called when the view is added.
      */
     void onAdd();
@@ -60,4 +67,15 @@ public interface ClusterRenderer<T extends ClusterItem> {
      * Called when the view is removed.
      */
     void onRemove();
+
+    /**
+     * Called to determine the color of a Cluster.
+     */
+    int getColor(int clusterSize);
+
+    /**
+     * Called to determine the text appearance of a cluster.
+     */
+    @StyleRes
+    int getClusterTextAppearance(int clusterSize);
 }

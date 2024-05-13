@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.google.maps.android.utils.demo">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <permission
         android:name="com.google.maps.android.utils.permission.MAPS_RECEIVE"
@@ -34,15 +33,16 @@
 
         <!--
         To add your Maps API key to this project:
-            1. Create a file demo/secure.properties
+            1. Open the file local.properties under the root project
             2. Add this line, where YOUR_API_KEY is your API key:
                 MAPS_API_KEY=YOUR_API_KEY
         -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="@string/maps_api_key" />
+            android:value="${MAPS_API_KEY}" />
 
         <activity
+            android:exported="true"
             android:name=".MainActivity"
             android:label="@string/app_name">
             <intent-filter>
@@ -59,6 +59,8 @@
         <activity android:name=".BigClusteringDemoActivity" />
         <activity android:name=".VisibleClusteringDemoActivity" />
         <activity android:name=".CustomMarkerClusteringDemoActivity" />
+        <activity android:name=".CustomAdvancedMarkerClusteringDemoActivity" />
+        <activity android:name=".ZoomClusteringDemoActivity" />
         <activity android:name=".ClusteringViewModelDemoActivity"/>
         <activity android:name=".TileProviderAndProjectionDemo" />
         <activity android:name=".HeatmapsDemoActivity" />
@@ -66,6 +68,8 @@
         <activity android:name=".GeoJsonDemoActivity" />
         <activity android:name=".KmlDemoActivity" />
         <activity android:name=".MultiLayerDemoActivity" />
+        <activity android:name=".AnimationUtilDemoActivity" />
+        <activity android:name=".StreetViewDemoActivity" />
 
     </application>
 

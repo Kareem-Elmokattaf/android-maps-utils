@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Google Inc.
+ * Copyright 2023 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,17 +34,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
-        if (getString(R.string.maps_api_key).isEmpty()) {
-            Toast.makeText(this, "Add your own API key in demo/secure.properties as MAPS_API_KEY=YOUR_API_KEY", Toast.LENGTH_LONG).show();
+        if (BuildConfig.MAPS_API_KEY.isEmpty()) {
+            Toast.makeText(this, "Add your own API key in local.properties as MAPS_API_KEY=YOUR_API_KEY", Toast.LENGTH_LONG).show();
         }
 
         mListView = findViewById(R.id.list);
 
         addDemo("Clustering", ClusteringDemoActivity.class);
+        addDemo("Advanced Markers Clustering Example", CustomAdvancedMarkerClusteringDemoActivity.class);
         addDemo("Clustering: Custom Look", CustomMarkerClusteringDemoActivity.class);
         addDemo("Clustering: 2K markers", BigClusteringDemoActivity.class);
         addDemo("Clustering: 20K only visible markers", VisibleClusteringDemoActivity.class);
         addDemo("Clustering: ViewModel", ClusteringViewModelDemoActivity.class);
+        addDemo("Clustering: Force on Zoom", ZoomClusteringDemoActivity.class);
         addDemo("PolyUtil.decode", PolyDecodeDemoActivity.class);
         addDemo("PolyUtil.simplify", PolySimplifyDemoActivity.class);
         addDemo("IconGenerator", IconGeneratorDemoActivity.class);
@@ -55,6 +57,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         addDemo("GeoJSON Layer", GeoJsonDemoActivity.class);
         addDemo("KML Layer Overlay", KmlDemoActivity.class);
         addDemo("Multi Layer", MultiLayerDemoActivity.class);
+        addDemo("AnimationUtil sample", AnimationUtilDemoActivity.class);
+        addDemo("Street View Demo", StreetViewDemoActivity.class);
     }
 
     private void addDemo(String demoName, Class<? extends Activity> activityClass) {
